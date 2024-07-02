@@ -9,13 +9,13 @@ import pygame
 def animate_frames(filepath, scale_var):
     frames = []
     for i in range(1, 10):
-        image = scaled_image(load_image(f"{i}.png", True), scale=scale_var)
+        image = scaled_image(load_image(f"{filepath}{i}.png", True), scale=scale_var)
         frames.append(image)
     return frames
 
 
 def load_image(img_file_name, alpha=False):
-    file_name = f"assets/images/{img_file_name}"
+    file_name = f"assets/{img_file_name}"
     # loads images from asseset/images file, if alpha = True then it has a transparent background
     img = pygame.image.load(file_name).convert_alpha() if alpha else pygame.image.load(file_name).convert()
     return img
@@ -39,16 +39,25 @@ def scaled_image(img, width=None, height=None, scale=None, flip_Hor=False, flip_
 def load_images(display_width, display_height):
     scale_var = min(display_width, display_height) / 250
     
-    images = {"intro_bg": scaled_image(load_image("City Background.png", True), display_width, display_height), # cityscape in intro background
-           "intro_fg" : scaled_image(load_image("City Foreground.png", True), display_width, display_height),   # foreground city used in parallax animation
-           "intro_sky" : scaled_image(load_image("Sky.png"), display_width, display_height),    # sky within intro background
-           "frog_temp" : load_image("frog.png", True),  # icon on the taskbar
-           "options" : scaled_image(load_image("configure.png", True), scale=scale_var),    # NOT IN USE
-           "options_hover" : scaled_image(load_image("configure hover.png", True), scale=scale_var),    # NOT IN USE
-           "exit" : scaled_image(load_image("no.png",True), scale=scale_var),   # used for exit button
-           "R_jump": scaled_image(load_image("GreenBrown/hop/gb_hop4.png", True), scale=scale_var), # jumping looking right
-           "R_fall": scaled_image(load_image("GreenBrown/hop/gb_hop6.png", True), scale=scale_var), # falling looking right
-           "idle": scaled_image(load_image("GreenBrown/idle/gb_idle1.png", True), scale=scale_var), # idle animation
-           "death" : load_death_frames(scale_var) # list of each death frame, scaled and alpha
+    images = {"char_idle" : animate_frames("character/Idle/Idle", scale_var),
+              "char_run" : animate_frames("character/Run/Run", scale_var)
+    
     }  
     return images
+
+
+pygame.init()
+
+display_width = 800
+display_height = 600
+
+window = pygame.display.set_mode((display_width,display_height)) # creates actual game environment
+pygame.display.set_caption('Leap Frog') # application name/ hover caption
+
+images = load_images(display_width,display_height)
+
+
+gameIcon = images["frog_temp"] # application image
+pygame.display.set_icon(gameIcon) 
+
+clock = pygame.time.Clock()
