@@ -7,20 +7,7 @@ Description: This file is specifically for loading things from asset folder, to 
 
 import pygame
 
-# creates a list for each image/frame used within the death animation
-# def load_death_frames(scale_var):
-#     frames = []
-#     for i in range(1, 10):
-#         image = scaled_image(load_image(f"GreenBrown/death/death{i}.png", True), scale=scale_var)
-#         frames.append(image)
-#     return frames
 
-def animate(scale_var, fm, path):
-    frames = []
-    for i in range(1, fm+1): 
-        image = scaled_image(load_image(f"{path}{i}.png", True), scale=scale_var)
-        frames.append(image)
-    return frames
 
 def load_image(img_file_name, alpha=False):
     file_name = f"assets/{img_file_name}"
@@ -43,25 +30,24 @@ def scaled_image(img, width=None, height=None, scale=None, flip_Hor=False, flip_
         img = pygame.transform.scale(img, (width,height))
     return img
 
+
+def animate(scale_var, fm, path):
+    frames = []
+    for i in range(1, fm+1): 
+        image = scaled_image(load_image(f"{path}{i}.png", True), scale=scale_var)
+        frames.append(image)
+    return frames
+
+
 # dictionary that loads all the images
 def load_images(display_width, display_height):
     scale_var = min(display_width, display_height) / 250
     
-    # images = {"intro_bg": scaled_image(load_image("City Background.png", True), display_width, display_height), # cityscape in intro background
-    #        "intro_fg" : scaled_image(load_image("City Foreground.png", True), display_width, display_height),   # foreground city used in parallax animation
-    #        "intro_sky" : scaled_image(load_image("Sky.png"), display_width, display_height),    # sky within intro background
-    #        "frog_temp" : load_image("frog.png", True),  # icon on the taskbar
-    #        "options" : scaled_image(load_image("configure.png", True), scale=scale_var),    # NOT IN USE
-    #        "options_hover" : scaled_image(load_image("configure hover.png", True), scale=scale_var),    # NOT IN USE
-    #        "exit" : scaled_image(load_image("no.png",True), scale=scale_var),   # used for exit button
-    #        "R_jump": scaled_image(load_image("GreenBrown/hop/gb_hop4.png", True), scale=scale_var), # jumping looking right
-    #        "R_fall": scaled_image(load_image("GreenBrown/hop/gb_hop6.png", True), scale=scale_var), # falling looking right
-    #        "idle": scaled_image(load_image("GreenBrown/idle/gb_idle1.png", True), scale=scale_var), # idle animation
-    #        "death" : load_death_frames(scale_var) # list of each death frame, scaled and alpha
-    # }
-
     images = {"run" : animate(scale_var, 6,"character/Run/Run"),
-              "idle" : animate(scale_var, 6, "character/Idle/Idle")
+              "idle" : animate(scale_var, 6, "character/Idle/Idle"),
+              "crouch" : animate(scale_var, 6, "character/Crouch/Crouch"),
+              "angry" : animate(scale_var, 6, "character/Stomping/Stomping"),
+              "roll" : animate(scale_var, 5, "character/Roll/Roll")
 
     }
     # for left movement of sprite
