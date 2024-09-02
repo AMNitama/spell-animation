@@ -6,6 +6,8 @@ links:  https://www.youtube.com/watch?v=MYaxPa_eZS0&t=290s      Animation w/ spr
         https://github.com/clear-code-projects/animation        Animation w/ sprites tutorial github
         https://www.youtube.com/watch?v=M6e3_8LHc7A             Loading Sprite sheets
         https://www.youtube.com/watch?v=NGFk44fY0O4             Lighting/particles
+        https://opengameart.org/
+
 '''
 
 
@@ -15,11 +17,6 @@ import load_assets as pic
 class Player(pygame.sprite.Sprite):
     def __init__(self, animations, pos_x, pos_y, speed):
         super().__init__()
-        # self.run_animation = False
-        # self.frames = frames
-        # self.sprites = []
-        # self.current_sprite = 0
-        # self.image = self.sprites[self.current_sprite]
 
         self.animations = animations    # getting dictionary of character animations
         self.current_animation = "idle" # the dictionary key for the frames list
@@ -38,18 +35,6 @@ class Player(pygame.sprite.Sprite):
             self.current_animation = animation_name
             self.frames = self.animations[self.current_animation]
 
-    # def run(self):
-    #     self.sprites = images["run"]
-    #     self.run_animation = True
-
-    # def update(self, speed):
-    #     if self.run_animation == True: 
-    #         self.current_sprite += speed
-    #         if self.current_sprite >= len(self.sprites):
-    #             self.current_sprite = 0
-    #             self.run_animation = False 
-
-    #     self.image = self.sprites[int(self.current_sprite)]
     def update(self, dt):
         self.animation_time += dt
         if self.animation_time >= self.speed:
@@ -81,7 +66,10 @@ pygame.display.set_icon(gameIcon)
 images = pic.load_images(display_width, display_height)
 animations = {
     "run" : images["run"],
-    "idle" : images["idle"]
+    "idle" : images["idle"],
+    "angry" : images["angry"],
+    "crouch" : images["crouch"],
+    "roll" : images["roll"]
 }
 
 moving_sprites = pygame.sprite.Group()
@@ -96,6 +84,16 @@ while True:
 
     if keys[pygame.K_SPACE]:
         player.set_animation("run")
+    
+    elif keys[pygame.K_s]:
+        player.set_animation("crouch")
+    
+    elif keys[pygame.K_1]:
+        player.set_animation("angry")
+
+    elif keys[pygame.K_d]:
+        player.set_animation("roll")
+
     else:
         player.set_animation("idle")
     
@@ -108,14 +106,17 @@ while True:
 
 
     for event in pygame.event.get():
-        print(event)
+        # print(event)
         if event.type == pygame.QUIT:
             pygame.quit()
             quit()
         
-        if event.type == pygame.VIDEORESIZE:
+        if event.type == pygame.VIDEORESIZE:    
             screen = pygame.display.set_mode((event.w, event.h,), pygame.RESIZABLE)
-        
+            display_width = screen.get_width()
+            display_height = screen.get_height()
+            print(event)
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_f:
                 fullscreen = False
