@@ -1,6 +1,8 @@
 '''
-Making a board for the game similar to Fire Emblem's system
+practice/improvement using object orientation.
 '''
+
+
 import pygame
 
 pygame.init()
@@ -31,6 +33,7 @@ class Character():
         self.movement_range = movement_range
         self.selected = False
         self.dragging = False
+        self.valid_move_cache = [] # cache valid moves
         
     
     def draw(self):
@@ -50,7 +53,7 @@ class Character():
         self.rect.x = grid_col * TILE_SIZE
         self.rect.y = grid_row * TILE_SIZE
 
-    def valid_moves(self):
+    def calculate_valid_moves(self, board):
         # Get the character's current grid position
         current_col = self.rect.centerx // TILE_SIZE
         current_row = self.rect.centery // TILE_SIZE
@@ -68,70 +71,79 @@ class Character():
                 # Use Manhattan distance to limit movement
                 if abs(dr) + abs(dc) <= self.movement_range:
                     # Ensure the move is within the board boundaries
-                    if 0 <= new_row < ROWS and 0 <= new_col < COLUMNS:
+                    if 0 <= new_row < ROWS and 0 <= new_col < COLUMNS and board[new_row][new_col].move_valid:
                         valid.append((new_row, new_col))
-
-        return valid
+        self.valid_move_cache = valid
     
-    #def click_on_grid(self):
+    def is_valid_move(self, target_row, target_col):
+        return (target_row, target_col) in self.valid_move_cache 
 
 
+class Tile():
+    def __init__(self, row, col, size, color):
+        self.row = row  # Row position on the grid
+        self.col = col  # Column position on the grid
+        self.size = size  # Size of the tile
+        self.color = color  # Color of the tile
+        self.rect = pygame.Rect(col * size, row * size, size, size)  # Pygame rectangle for the tile
+        self.move_valid = True
+
+    def draw(self, screen):
+        # Draw the tile on the screen
+        pygame.draw.rect(screen, self.color, self.rect)
+
+    def highlight(self, screen, highlight_color, boarder_thickness=2):
+        # Highlight the tile with a given color
+            pygame.draw.rect(screen, highlight_color, self.rect, boarder_thickness)
+
+
+    def contains_point(self, x, y):
+        # Check if a point (x, y) is within the tile's rectangle
+        return self.rect.collidepoint(x, y)
+    
 
 
 def createBoard():
-    # for each horizontal row, look at the column's index, and create a tile
-    # this tile object within a dictionary is then added to the board row, after the row is finished it is then added to the full board
-    # board = [board_row_1, board_row_2, etc] , board_row = [[tile_1, color], [tile_2, color ], etc]
-    # pygame.Rect is a class to create an actual rectangle object class
+    # Create a board as a list of Tile objects
     board = []
     for row in range(ROWS):
         board_row = []
         for col in range(COLUMNS):
-            board_row.append({
-                "tile": pygame.Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE), # create a rectangle in posX, posY, width, height
-                "color" : color["white"]
-            })
+            # Initialize each tile with its row, column, size, and base color
+            tile = Tile(row, col, TILE_SIZE, color["white"])
+            board_row.append(tile)
         board.append(board_row)
-        print(board_row)
-
-    print(board)
     return board
 
 
 
 def draw_board(board, character):
+    # Draw the game board
     for row in range(ROWS):
         for col in range(COLUMNS):
-            tile_rect = board[row][col]["tile"]
-            base_color = board[row][col]["color"]
+            tile = board[row][col]
 
-            pygame.draw.rect(screen, base_color,tile_rect)
-            # pygame.draw.rect(screen, color["grey"], tile_rect, 2)
-            pygame.draw.rect(screen, color["black"], tile_rect, 1)
+            # Draw each tile
+            tile.draw(screen)
+            tile.highlight(screen, color["grey"], 1)
 
-            if character.selected:
-                valid_tiles = character.valid_moves()
-                for (r,c) in valid_tiles:
-                    if (r,c) == (row, col):
-                        pygame.draw.rect(screen, color["green"], tile_rect, 2)
-            
-            
+            # Highlight the valid move tiles if the character is selected
+            if character.selected and (row,col) in character.valid_move_cache:
+                        tile.highlight(screen, color["green"])
+
+
 
 character = Character(0,0, color["blue"], movement_range=3)
 board = createBoard()
 
 
-
 while True:
-    screen.fill(color["black"])
-    # valid_tiles = valid_moves(character)
+    screen.fill(color["black"])  # Clear the screen with a black background
 
-    # draw_board(board, valid_tiles)
-    draw_board(board, character)
-    character.draw()
-    
-    
-    
+    draw_board(board, character)  # Draw the game board with character's move range highlighted
+    character.draw()  # Draw the character
+
+    # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -141,24 +153,18 @@ while True:
             if character.rect.collidepoint(event.pos):
                 character.selected = True
                 character.dragging = True
-            
-            elif character.selected == True and character.valid_moves:
-                character.update_position(event.pos)
-                character.snap_to_grid
-            
+                character.calculate_valid_moves(board)
             else:
-                character.selected = False # deselect if clicked elsewhere
-
-            
+                character.selected = False  # Deselect the character if clicked elsewhere
 
         elif event.type == pygame.MOUSEBUTTONUP:
-            character.dragging = False
-            character.snap_to_grid()
+            if character.dragging:
+                character.dragging = False
+                character.snap_to_grid()  # Snap character to the nearest tile
 
         elif event.type == pygame.MOUSEMOTION:
             if character.dragging:
                 character.update_position(event.pos)
-                print(event.pos)
 
     pygame.display.flip()
     clock.tick(FPS)
