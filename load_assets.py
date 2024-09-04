@@ -47,7 +47,13 @@ def load_images(display_width, display_height):
               "idle" : animate(scale_var, 6, "character/Idle/Idle"),
               "crouch" : animate(scale_var, 6, "character/Crouch/Crouch"),
               "angry" : animate(scale_var, 6, "character/Stomping/Stomping"),
-              "roll" : animate(scale_var, 5, "character/Roll/Roll")
+              "roll" : animate(scale_var, 5, "character/Roll/Roll"),
+              "female_farmer" : {
+                  "forward_walk" : animate(scale_var, 3, "character/Farmer/F1/Run/FW"),
+                  "right_walk" : animate(scale_var, 3, "character/Farmer/F1/Run/RW"),
+                  "back_walk" : animate(scale_var, 3, "character/Farmer/F1/Run/BW"),
+                  "left_walk" : animate(scale_var, 3, "character/Farmer/F1/Run/LW")
+              }
 
     }
     # for left movement of sprite
@@ -61,13 +67,12 @@ def load_images(display_width, display_height):
 
 # dictionary of all musics
 def load_playlist():
-    # return{
-    #     "intro" : "00 intro_0.ogg",
-    #     "bgm1" : "07 high in the mountains.ogg",
-    #     "bgm2" : "02 lava city.ogg",
-    #     "game_over" : "1x game over.ogg"
-    # }
-    return None
+    return{
+        "dungeon2" : "dungeon2.wav",
+        "epilogue" : "epilogue.mp3",
+        "inn_music" : "inn_music.mp3",
+        "windchill" : "windchill.wav"
+    }
 
 # takes a dictionary and plays the music, allows for volume adjust
 def play_music(playlist, track_name, volume=0.3, loop=-1):

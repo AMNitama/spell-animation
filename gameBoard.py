@@ -34,6 +34,7 @@ class Character():
         self.selected = False
         self.dragging = False
         self.valid_move_cache = [] # cache valid moves
+        self.selected_posX,self.selected_posY = x//TILE_SIZE, y//TILE_SIZE
         
     
     def draw(self):
@@ -41,13 +42,14 @@ class Character():
         if self.selected:
             pygame.draw.rect(screen, color["green"], self.rect,2)
 
+
     def update_position(self, pos):
         self.rect.x = pos[0] - TILE_SIZE//2
         self.rect.y = pos[1] - TILE_SIZE//2
 
 
     def snap_to_grid(self):
-        # getting nearest grid position based on the location of the center of the square
+        # getting nearest grid position based on the location of the center of the square        
         grid_col = self.rect.centerx // TILE_SIZE
         grid_row = self.rect.centery // TILE_SIZE
         self.rect.x = grid_col * TILE_SIZE
@@ -61,6 +63,11 @@ class Character():
         # Initialize a list to store valid moves
         valid = []
 
+        # Reset all tiles to be invalid initially
+        for row in board:
+            for tile in row:
+                tile.move_valid = False
+
         # Check each possible move within the movement range
         for dr in range(-self.movement_range, self.movement_range + 1):
             for dc in range(-self.movement_range, self.movement_range + 1):
@@ -71,12 +78,25 @@ class Character():
                 # Use Manhattan distance to limit movement
                 if abs(dr) + abs(dc) <= self.movement_range:
                     # Ensure the move is within the board boundaries
-                    if 0 <= new_row < ROWS and 0 <= new_col < COLUMNS and board[new_row][new_col].move_valid:
+                    if 0 <= new_row < ROWS and 0 <= new_col < COLUMNS: 
+                        board[new_row][new_col].valid_move()  # set tile to be a valid move
                         valid.append((new_row, new_col))
+
         self.valid_move_cache = valid
-    
-    def is_valid_move(self, target_row, target_col):
-        return (target_row, target_col) in self.valid_move_cache 
+        self.selected_posX, self.selected_posY = current_col, current_row
+
+
+    def is_valid_move(self):
+        # Validate the current position of the character
+        grid_col = self.rect.centerx // TILE_SIZE
+        grid_row = self.rect.centery // TILE_SIZE
+
+        # Check if the current position is in the cache of valid moves
+        if (grid_row, grid_col) not in self.valid_move_cache:
+            # Snap back to the original position if the move is invalid
+            self.rect.x = self.selected_posX * TILE_SIZE
+            self.rect.y = self.selected_posY * TILE_SIZE
+                    
 
 
 class Tile():
@@ -86,8 +106,11 @@ class Tile():
         self.size = size  # Size of the tile
         self.color = color  # Color of the tile
         self.rect = pygame.Rect(col * size, row * size, size, size)  # Pygame rectangle for the tile
-        self.move_valid = True
+        self.move_valid = False
 
+    def valid_move(self):
+        self.move_valid = True
+ 
     def draw(self, screen):
         # Draw the tile on the screen
         pygame.draw.rect(screen, self.color, self.rect)
@@ -111,6 +134,7 @@ def createBoard():
         for col in range(COLUMNS):
             # Initialize each tile with its row, column, size, and base color
             tile = Tile(row, col, TILE_SIZE, color["white"])
+
             board_row.append(tile)
         board.append(board_row)
     return board
@@ -129,8 +153,9 @@ def draw_board(board, character):
 
             # Highlight the valid move tiles if the character is selected
             if character.selected and (row,col) in character.valid_move_cache:
-                        tile.highlight(screen, color["green"])
-
+                tile.highlight(screen, color["green"])
+            # else:
+            #     tile.highlight(screen, color["red"])
 
 
 character = Character(0,0, color["blue"], movement_range=3)
@@ -160,6 +185,7 @@ while True:
         elif event.type == pygame.MOUSEBUTTONUP:
             if character.dragging:
                 character.dragging = False
+                character.is_valid_move()
                 character.snap_to_grid()  # Snap character to the nearest tile
 
         elif event.type == pygame.MOUSEMOTION:
